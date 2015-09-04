@@ -2,11 +2,6 @@ cmake_minimum_required( VERSION 3.3)
 
 project(Freetype VERSION 2.4.10 LANGUAGES C)
 
-if (BUILD_SHARED_LIBS)
-    set(FREETYPE_BUILD_SHARED YES)
-else()
-    set(FREETYPE_BUILD_STATIC YES)
-endif()
 option(FREETYPE_USE_ZLIB "Use external zlib library for decompression." ON)
 option(FREETYPE_USE_BZIP2 "Use external bzip2 library for decompression." ON)
 option(FREETYPE_USE_CID "Use CID Font." OFF)
@@ -147,7 +142,7 @@ set(LIB_SERVICES_HDRS
   include/freetype/internal/services/svxf86nm.h
 )
 set(LIB_CONFIG_HDRS
-  #include/freetype/config/ftconfig.h
+  include/freetype/config/ftconfig.h
   include/freetype/config/ftheader.h
   include/freetype/config/ftmodule.h
   include/freetype/config/ftoption.h
@@ -168,6 +163,7 @@ if(FREETYPE_USE_CID)
   list(APPEND LIB_HDRS include/freetype/ftcid.h)
 endif()
 
+set(WINDOWS_DEF_FILE )
 if(WIN32)
   set(LIB_SRCS ${LIB_SRCS} src/win32/ftdebug.c)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE)
@@ -190,43 +186,31 @@ elseif(BORLAND)
   set(LIB_HDRS ${LIB_HDRS} include/freetype/ftbdf.h)
 endif()
 
-set(TARGETS )
-set(LIB_NAME freetype)
-if(FREETYPE_BUILD_SHARED)
-  add_library(${LIB_NAME} SHARED 
-      ${LIB_SRCS} ${LIB_BUILD_HDRS} ${LIB_HDRS} ${LIB_CONFIG_HDRS}
-      ${LIB_SERVICES_HDRS} ${LIB_INTERNAL_HDRS} ${WINDOWS_DEF_FILE})
-  list(APPEND TARGETS ${LIB_NAME})
+add_library(freetype ${LIB_SRCS} ${LIB_HDRS} ${LIB_CONFIG_HDRS} ${LIB_BUILD_HDRS}
+     ${LIB_SERVICES_HDRS} ${LIB_INTERNAL_HDRS} ${WINDOWS_DEF_FILE})
+target_include_directories(freetype PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_definitions(freetype PRIVATE FT2_BUILD_LIBRARY)
+if (ZLIB_FOUND)
+    target_compile_definitions(freetype PRIVATE FT_CONFIG_OPTION_USE_ZLIB FT_CONFIG_OPTION_SYSTEM_ZLIB)
+    target_link_libraries(freetype PUBLIC zlib)
 endif()
-if(FREETYPE_BUILD_STATIC)
-  add_library(${LIB_NAME}-static STATIC ${LIB_SRCS} ${LIB_BUILD_HDRS}
-      ${LIB_HDRS} ${LIB_CONFIG_HDRS}
-      ${LIB_SERVICES_HDRS} ${LIB_INTERNAL_HDRS})
-  set_target_properties(${LIB_NAME}-static PROPERTIES OUTPUT_NAME "${LIB_NAME}" PREFIX "lib")
-  list(APPEND TARGETS ${LIB_NAME}-static)
+if (BZIP2_FOUND)
+    target_compile_definitions(freetype PRIVATE FT_CONFIG_OPTION_USE_BZIP2)
+    target_link_libraries(freetype PUBLIC bz2)
 endif()
-foreach(TARGET ${TARGETS})
-    target_include_directories(${TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-    target_compile_definitions(${TARGET} PRIVATE FT2_BUILD_LIBRARY)
-    if (ZLIB_FOUND)
-        target_compile_definitions(${TARGET} PRIVATE FT_CONFIG_OPTION_USE_ZLIB FT_CONFIG_OPTION_SYSTEM_ZLIB)
-        target_link_libraries(${TARGET} PUBLIC zlib)
-    endif()
-    if (BZIP2_FOUND)
-        target_compile_definitions(${TARGET} PRIVATE FT_CONFIG_OPTION_USE_BZIP2)
-        target_link_libraries(${TARGET} PUBLIC bz2)
-    endif()
-    target_compile_definitions(${TARGET} PRIVATE $<$<CONFIG:Debug>:FT_DEBUG_LEVEL_ERROR FT_DEBUG_LEVEL_TRACE>)
-endforeach()
+target_compile_definitions(freetype PRIVATE $<$<CONFIG:Debug>:FT_DEBUG_LEVEL_ERROR FT_DEBUG_LEVEL_TRACE>)
 
-install(TARGETS ${TARGETS}
+install(TARGETS freetype
     EXPORT freetype-config
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     INCLUDES DESTINATION include/freetype2
 )
-install(FILES ${LIB_HDRS}
+install(FILES ${LIB_BUILD_HDRS}
+  DESTINATION include/freetype2
+)
+install(FILES ${LIB_HDRS} ${LIB_BUILD_HDRS}
   DESTINATION include/freetype2/freetype
 )
 install(FILES ${LIB_CONFIG_HDRS}
