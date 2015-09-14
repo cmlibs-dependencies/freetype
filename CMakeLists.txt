@@ -1,5 +1,4 @@
-cmake_minimum_required( VERSION 3.3)
-
+cmake_minimum_required(VERSION 3.3)
 project(Freetype VERSION 2.4.10 LANGUAGES C)
 
 option(FREETYPE_USE_ZLIB "Use external zlib library for decompression." ON)
@@ -165,19 +164,19 @@ endif()
 
 set(WINDOWS_DEF_FILE )
 if(WIN32)
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE)
-  add_subdirectory(src/tools)
+  set(LIB_SRCS ${LIB_SRCS} src/win32/ftdebug.c)
+  add_executable(apinames src/tools/apinames.c)
+  target_compile_definitions(apinames PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_SECURE_NO_DEPRECATE)
   set(WINDOWS_DEF_FILE exports.def)
-  get_property(APINAMES_LOCATION TARGET apinames PROPERTY LOCATION)
+  #get_property(APINAMES_LOCATION TARGET apinames PROPERTY LOCATION)
   set(EXPORTABLE_HDRS)
   foreach(LIB_HDR ${LIB_HDRS})
     list(APPEND EXPORTABLE_HDRS ${CMAKE_CURRENT_SOURCE_DIR}/${LIB_HDR})
   endforeach()
   add_custom_command(
-    COMMENT "Generating exports file."
     OUTPUT ${WINDOWS_DEF_FILE}
-    COMMAND ${APINAMES_LOCATION} -w -o${WINDOWS_DEF_FILE} ${EXPORTABLE_HDRS}
-	DEPENDS apinames
+    COMMAND apinames -w -o${WINDOWS_DEF_FILE} ${EXPORTABLE_HDRS}
+	COMMENT "Generating exports file."
   )
 elseif(OSX)
   set(LIB_HDRS ${LIB_HDRS} include/freetype/ftmac.h)
