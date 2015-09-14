@@ -165,7 +165,6 @@ endif()
 
 set(WINDOWS_DEF_FILE )
 if(WIN32)
-  set(LIB_SRCS ${LIB_SRCS} src/win32/ftdebug.c)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE)
   add_subdirectory(src/tools)
   set(WINDOWS_DEF_FILE exports.def)
@@ -186,6 +185,12 @@ elseif(BORLAND)
   set(LIB_HDRS ${LIB_HDRS} include/freetype/ftbdf.h)
 endif()
 
+if (WIN32)
+    set(LIB_SRCS ${LIB_SRCS} src/win32/ftdebug.c)
+else()
+    set(LIB_SRCS ${LIB_SRCS} src/base/ftdebug.c)
+endif()
+
 add_library(freetype ${LIB_SRCS} ${LIB_HDRS} ${LIB_CONFIG_HDRS} ${LIB_BUILD_HDRS}
      ${LIB_SERVICES_HDRS} ${LIB_INTERNAL_HDRS} ${WINDOWS_DEF_FILE})
 target_include_directories(freetype PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -198,7 +203,9 @@ if (BZip2_FOUND)
     target_compile_definitions(freetype PRIVATE FT_CONFIG_OPTION_USE_BZIP2)
     target_link_libraries(freetype PUBLIC bz2)
 endif()
-target_compile_definitions(freetype PRIVATE $<$<CONFIG:Debug>:FT_DEBUG_LEVEL_ERROR FT_DEBUG_LEVEL_TRACE>)
+target_compile_definitions(freetype PRIVATE
+     $<$<CONFIG:Debug>:FT_DEBUG_LEVEL_ERROR>
+     $<$<CONFIG:Debug>:FT_DEBUG_LEVEL_TRACE>)
 
 install(TARGETS freetype
     EXPORT freetype-config
@@ -217,7 +224,7 @@ install(FILES ${LIB_CONFIG_HDRS}
   DESTINATION include/freetype2/freetype/config
 )
 install(EXPORT freetype-config 
-	DESTINATION ${PACKAGE_CONFIG_DIR} )
+	DESTINATION ${PACKAGE_CONFIG_DIR})
 include(CMakePackageConfigHelpers)
 WRITE_BASIC_PACKAGE_VERSION_FILE(${CMAKE_CURRENT_BINARY_DIR}/freetype-config-version.cmake
     COMPATIBILITY AnyNewerVersion)
