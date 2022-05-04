@@ -206,6 +206,10 @@ target_compile_definitions(freetype PRIVATE
      $<$<CONFIG:Debug>:FT_DEBUG_LEVEL_ERROR>
      $<$<CONFIG:Debug>:FT_DEBUG_LEVEL_TRACE>)
 
+if (NOT BUILD_SHARED_LIBS)
+    set_target_properties(freetype PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endif()
+
 install(TARGETS freetype
     EXPORT freetype-config
     RUNTIME DESTINATION bin
