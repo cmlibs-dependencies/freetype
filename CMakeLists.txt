@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.3)
 project(Freetype VERSION 2.4.10 LANGUAGES C)
 
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
 option(FREETYPE_USE_ZLIB "Use external zlib library for decompression." ON)
 option(FREETYPE_USE_BZIP2 "Use external bzip2 library for decompression." ON)
 option(FREETYPE_USE_CID "Use CID Font." OFF)
