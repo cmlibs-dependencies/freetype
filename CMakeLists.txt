@@ -198,6 +198,7 @@ add_library(freetype ${LIB_SRCS} ${LIB_HDRS} ${LIB_CONFIG_HDRS} ${LIB_BUILD_HDRS
      ${LIB_SERVICES_HDRS} ${LIB_INTERNAL_HDRS} ${WINDOWS_DEF_FILE})
 target_include_directories(freetype PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_definitions(freetype PRIVATE FT2_BUILD_LIBRARY)
+set_target_properties(freetype PROPERTIES DEBUG_POSTFIX d)
 if (ZLIB_FOUND)
     target_compile_definitions(freetype PRIVATE FT_CONFIG_OPTION_USE_ZLIB FT_CONFIG_OPTION_SYSTEM_ZLIB)
     target_link_libraries(freetype PUBLIC zlib)
