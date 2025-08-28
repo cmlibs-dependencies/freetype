@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.18)
 project(Freetype VERSION 2.4.10 LANGUAGES C)
 
 if(POLICY CMP0074)
